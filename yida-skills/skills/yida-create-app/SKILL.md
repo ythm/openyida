@@ -1,6 +1,6 @@
 ---
 name: yida-create-app
-description: 创建宜搭应用，返回 appType。搭建应用的第一步。
+description: 创建宜搭应用，返回 appType。搭建应用的第一步。不适用于：应用已存在时（先查询是否已有同名应用），或只需在已有应用中创建页面/表单（直接使用 yida-create-page 或 yida-create-form-page）。
 ---
 
 # 创建应用
@@ -16,6 +16,7 @@ description: 创建宜搭应用，返回 appType。搭建应用的第一步。
 
 - 创建成功后，将 appType 记录到 `.cache/<项目名>-schema.json`
 - 创建前确认当前登录的组织（corpId）与目标组织一致
+- **本技能不读写 memory**：appType 等信息输出到 stdout，通过 `.cache/<项目名>-schema.json` 持久化，不依赖跨会话的 memory 状态
 
 ## 适用场景
 
@@ -84,3 +85,12 @@ openyida create-app <appName> [description] [icon] [iconColor] [colour] [navThem
 | 申报 | `xian-shenbao` | | 打卡 | `xian-daka` |
 
 **图标背景色**：`#0089FF` `#00B853` `#FFA200` `#FF7357` `#5C72FF` `#85C700` `#FFC505` `#FF6B7A` `#8F66FF` `#14A9FF`
+
+## 异常处理
+
+| 异常场景 | 处理方式 |
+|---------|----------|
+| 命令返回失败（非 success） | 检查登录态（`openyida env`），确认 corpId 正确 |
+| 应用名称重复 | 询问用户是否使用已有应用，或修改应用名称后重试 |
+| 登录态失效（401） | 执行 `openyida login` 重新登录后重试 |
+| 返回 JSON 中无 appType | 不要猜测 appType，重新执行命令获取 |

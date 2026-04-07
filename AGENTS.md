@@ -128,6 +128,10 @@ openyida/
 - `lib/core/utils.js` 的 `detectActiveTool()` 直接读取 `AGENT_WORK_ROOT` 作为工作区根目录
 - `openyida copy` 在**空目录**时会直接把 `project/` 内容铺入工作区（不创建 `project/` 子目录层级）
 - 悟空通过手动上传技能包，`postinstall` 不会自动安装 `yida-skills/`
+- 悟空自带 node/npm 路径：macOS/Linux 为 `~/.real/.bin/node/bin/`，Windows 为 `%USERPROFILE%\.real\.bin\node\bin\`。执行任何 `npm`/`node`/`npx` 命令前**必须**先设置 PATH：
+  - macOS/Linux：`export PATH="$HOME/.real/.bin/node/bin:$PATH"`
+  - Windows (PowerShell)：`$env:PATH = "$env:USERPROFILE\.real\.bin\node\bin;$env:PATH"`
+  否则可能调用到本地系统 node 导致权限报错
 
 ### 自定义页面
 - 源码位于 `project/pages/src/`，使用 React + 宜搭 SDK
