@@ -1,0 +1,72 @@
+{
+  "name": "openyida",
+  "version": "2026.04.02",
+  "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
+  "bin": {
+    "openyida": "./bin/yida.js",
+    "yida": "./bin/yida.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "agent/",
+    "project/config.json",
+    "project/pages/src/demo-*.js",
+    "project/prd/demo-*.md",
+    "yida-skills/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint bin/ lib/ agent/ scripts/ tests/ --ext .js",
+    "lint:fix": "eslint bin/ lib/ agent/ scripts/ tests/ --ext .js --fix",
+    "postinstall": "node scripts/postinstall.js"
+  },
+  "keywords": [
+    "yida",
+    "aliwork",
+    "dingtalk",
+    "cli",
+    "openyida",
+    "low-code",
+    "ai",
+    "qoder",
+    "wukong"
+  ],
+  "author": "OpenYida Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openyida/openyida.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openyida/openyida/issues"
+  },
+  "homepage": "https://github.com/openyida/openyida#readme",
+  "dependencies": {
+    "@babel/standalone": "^7.15.1",
+    "playwright": "^1.58.2",
+    "qrcode": "^1.5.4",
+    "uglify-js": "^3.19.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-plugin-import": "^2.32.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ]
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

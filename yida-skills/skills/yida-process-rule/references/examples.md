@@ -1,0 +1,181 @@
+# yida-process-rule 使用示例
+
+## 示例 1：配置简单两级审批流程
+
+### 场景
+
+为"费用报销"表单配置审批流程：部门主管审批 → 财务审批（金额 > 1000 时）→ 结束。
+
+### 前置步骤：获取字段 ID
+
+```bash
+openyida get-schema APP_XXX FORM-EXPENSE > .cache/expense-schema.json 2>&1
+# 从 schema.json 中提取字段 ID：
+# 报销金额：numberField_amount
+# 报销类型：selectField_expenseType
+# 报销说明：textareaField_remark
+# 附件：attachmentField_receipt
+```
+
+### 创建流程定义文件 `expense-process.json`
+
+```json
+{
+  "nodes": [
+    {
+      "type": "approval",
+      "name": "部门主管审批",
+      "approver": "originator",
+      "description": "部门主管审核报销申请",
+      "formConfig": {
+        "behaviorList": [
+          { "fieldId": "numberField_amount", "fieldBehavior": "READONLY" },
+          { "fieldId": "selectField_expenseType", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_remark", "fieldBehavior": "READONLY" },
+          { "fieldId": "attachmentField_receipt", "fieldBehavior": "NORMAL" }
+        ]
+      }
+    },
+    {
+      "type": "route",
+      "conditions": [
+        {
+          "name": "金额超过1000",
+          "rules": [
+            {
+              "fieldId": "numberField_amount",
+              "fieldName": "报销金额",
+              "op": "GreaterThan",
+              "value": "1000",
+              "componentType": "NumberField"
+            }
+          ],
+          "childNodes": [
+            {
+              "type": "approval",
+              "name": "财务审批",
+              "approver": "originator",
+              "description": "财务部审核大额报销",
+              "formConfig": {
+                "behaviorList": [
+                  { "fieldId": "numberField_amount", "fieldBehavior": "READONLY" },
+                  { "fieldId": "selectField_expenseType", "fieldBehavior": "READONLY" },
+                  { "fieldId": "textareaField_remark", "fieldBehavior": "READONLY" },
+                  { "fieldId": "attachmentField_receipt", "fieldBehavior": "NORMAL" }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 执行命令
+
+```bash
+openyida configure-process APP_XXX FORM-EXPENSE expense-process.json
+```
+
+### 输出
+
+```json
+{
+  "success": true,
+  "processCode": "TPROC--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "processId": "83145794990",
+  "processVersion": 2,
+  "appType": "APP_XXX",
+  "formUuid": "FORM-EXPENSE"
+}
+```
+
+---
+
+## 示例 2：带回退规则的质检流程
+
+### 场景
+
+质检流程：取样 → 检验 → 判断结果（合格/不合格）。不合格时跳回检验节点重新检验。
+
+### 流程定义 `quality-process.json`
+
+```json
+{
+  "nodes": [
+    {
+      "type": "approval",
+      "name": "取样",
+      "approver": "originator",
+      "formConfig": {
+        "behaviorList": [
+          { "fieldId": "textField_sampleId", "fieldBehavior": "NORMAL" },
+          { "fieldId": "textareaField_sampleNote", "fieldBehavior": "NORMAL" },
+          { "fieldId": "textareaField_inspectNote", "fieldBehavior": "HIDDEN" },
+          { "fieldId": "radioField_result", "fieldBehavior": "HIDDEN" },
+          { "fieldId": "attachmentField_photo", "fieldBehavior": "NORMAL" }
+        ]
+      }
+    },
+    {
+      "type": "approval",
+      "name": "检验",
+      "approver": "originator",
+      "formConfig": {
+        "behaviorList": [
+          { "fieldId": "textField_sampleId", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_sampleNote", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_inspectNote", "fieldBehavior": "NORMAL" },
+          { "fieldId": "radioField_result", "fieldBehavior": "HIDDEN" },
+          { "fieldId": "attachmentField_photo", "fieldBehavior": "NORMAL" }
+        ]
+      }
+    },
+    {
+      "type": "approval",
+      "name": "判断结果",
+      "approver": "originator",
+      "formConfig": {
+        "behaviorList": [
+          { "fieldId": "textField_sampleId", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_sampleNote", "fieldBehavior": "READONLY" },
+          { "fieldId": "textareaField_inspectNote", "fieldBehavior": "READONLY" },
+          { "fieldId": "radioField_result", "fieldBehavior": "NORMAL" },
+          { "fieldId": "attachmentField_photo", "fieldBehavior": "NORMAL" }
+        ]
+      },
+      "routeRules": [
+        { "when": "disagree", "jumpTo": "检验" }
+      ]
+    }
+  ]
+}
+```
+
+### 执行命令
+
+```bash
+openyida configure-process APP_XXX FORM-QUALITY quality-process.json
+```
+
+---
+
+## 字段权限配置规范
+
+| 节点阶段 | 本节点负责字段 | 前序字段 | 后续字段 |
+|---------|-------------|---------|---------|
+| 取样节点 | `NORMAL`（可编辑） | 无 | `HIDDEN`（隐藏） |
+| 检验节点 | `NORMAL`（可编辑） | `READONLY`（只读） | `HIDDEN`（隐藏） |
+| 判断节点 | `NORMAL`（可编辑） | `READONLY`（只读） | 无 |
+| 附件字段 | 所有节点均为 `NORMAL` | — | — |
+
+## 常见错误
+
+| 错误 | 原因 | 解决方式 |
+|------|------|---------|
+| `fieldId 不存在` | 手写猜测了 fieldId | 先执行 `openyida get-schema` 获取真实 fieldId |
+| 条件分支报错 | 最后一个 conditionNode 不是 `else` | 确认最后一个条件的 `conditionType` 为 `"else"` |
+| 流程发布后未生效 | 只保存未发布 | 确认已执行发布步骤，检查流程版本号 |
+| 嵌套分支超过 3 层 | 流程设计过于复杂 | 重新设计流程结构，将复杂条件拆分为多个节点 |

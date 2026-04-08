@@ -1,0 +1,245 @@
+name: Update Contributors
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  update-contributors:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Update README contributors
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PYEOF'
+          import subprocess
+          import json
+          import re
+          import sys
+          import os
+
+          repo = os.environ["REPO"]
+
+          # ============================================================
+          # 第一步：从 git commit 历史中获取所有 commit 作者的邮箱
+          # ============================================================
+          print("📋 从 git commit 历史获取所有贡献者...")
+
+          git_result = subprocess.run(
+              ["git", "log", "--format=%aN <%aE>", "--all"],
+              capture_output=True, text=True
+          )
+          if git_result.returncode != 0:
+              print(f"⚠️  git log 失败: {git_result.stderr}")
+              sys.exit(0)
+
+          # 收集所有唯一的 commit 作者（按邮箱去重）
+          seen_emails = set()
+          commit_authors = []  # [(name, email)]
+          for line in git_result.stdout.strip().split("\n"):
+              line = line.strip()
+              if not line:
+                  continue
+              match = re.match(r'^(.+?)\s+<(.+?)>' + '$', line)
+              if not match:
+                  continue
+              name, email = match.group(1), match.group(2).lower()
+              if email in seen_emails:
+                  continue
+              seen_emails.add(email)
+              commit_authors.append((name, email))
+
+          print(f"✅ 从 git 历史中获取到 {len(commit_authors)} 位唯一作者")
+
+          # ============================================================
+          # 第二步：从 GitHub API 获取 commit 作者对应的 GitHub 用户信息
+          # 同时获取 contributors API 和 PR 作者作为补充
+          # ============================================================
+          all_logins = {}  # login -> {avatar_url, html_url, contributions}
+
+          # 方式 1：GitHub contributors API（有 commit 的用户）
+          print("📋 从 GitHub contributors API 获取用户信息...")
+          result = subprocess.run(
+              ["gh", "api", f"repos/{repo}/contributors?per_page=100&anon=false",
+               "--paginate", "--jq", ".[]"],
+              capture_output=True, text=True
+          )
+          if result.returncode == 0 and result.stdout.strip():
+              for line in result.stdout.strip().split("\n"):
+                  line = line.strip()
+                  if not line:
+                      continue
+                  try:
+                      contributor = json.loads(line)
+                      login = contributor.get("login", "")
+                      if login:
+                          all_logins[login.lower()] = {
+                              "login": login,
+                              "avatar_url": contributor.get("avatar_url", ""),
+                              "html_url": contributor.get("html_url", f"https://github.com/{login}"),
+                              "contributions": contributor.get("contributions", 0),
+                          }
+                  except json.JSONDecodeError:
+                      pass
+
+          # 方式 2：从 commit 邮箱通过 GitHub search API 查找用户
+          print("📋 从 commit 邮箱查找 GitHub 用户...")
+          for name, email in commit_authors:
+              # 跳过 noreply 邮箱（已在 contributors API 中）
+              if "noreply" in email or "github" in email:
+                  continue
+              # 尝试通过邮箱搜索用户
+              search_result = subprocess.run(
+                  ["gh", "api", f"search/users?q={email}+in:email", "--jq", ".items[0]"],
+                  capture_output=True, text=True
+              )
+              if search_result.returncode == 0 and search_result.stdout.strip():
+                  try:
+                      user = json.loads(search_result.stdout.strip())
+                      login = user.get("login", "")
+                      if login and login.lower() not in all_logins:
+                          all_logins[login.lower()] = {
+                              "login": login,
+                              "avatar_url": user.get("avatar_url", ""),
+                              "html_url": user.get("html_url", f"https://github.com/{login}"),
+                              "contributions": 1,
+                          }
+                          print(f"  📧 通过邮箱找到: {name} <{email}> → {login}")
+                  except json.JSONDecodeError:
+                      pass
+
+          # 方式 3：从合并的 PR 中获取作者
+          print("📋 从合并的 PR 获取贡献者...")
+          pr_result = subprocess.run(
+              ["gh", "pr", "list", "--state", "merged", "--limit", "200",
+               "--json", "author", "--jq", ".[].author"],
+              capture_output=True, text=True
+          )
+          if pr_result.returncode == 0 and pr_result.stdout.strip():
+              for line in pr_result.stdout.strip().split("\n"):
+                  line = line.strip()
+                  if not line:
+                      continue
+                  try:
+                      author = json.loads(line)
+                      login = author.get("login", "")
+                      if login and login.lower() not in all_logins:
+                          # 需要获取头像信息
+                          user_result = subprocess.run(
+                              ["gh", "api", f"users/{login}", "--jq",
+                               '"{\"login\": \"" + .login + "\", \"avatar_url\": \"" + .avatar_url + "\", \"html_url\": \"" + .html_url + "\"}"'],
+                              capture_output=True, text=True
+                          )
+                          if user_result.returncode == 0 and user_result.stdout.strip():
+                              try:
+                                  user_info = json.loads(user_result.stdout.strip())
+                                  all_logins[login.lower()] = {
+                                      "login": user_info.get("login", login),
+                                      "avatar_url": user_info.get("avatar_url", ""),
+                                      "html_url": user_info.get("html_url", f"https://github.com/{login}"),
+                                      "contributions": 1,
+                                  }
+                                  print(f"  🔀 从 PR 找到: {login}")
+                              except json.JSONDecodeError:
+                                  pass
+                  except json.JSONDecodeError:
+                      pass
+
+          if not all_logins:
+              print("⚠️  未获取到任何贡献者数据，跳过更新")
+              sys.exit(0)
+
+          print(f"\n✅ 共获取到 {len(all_logins)} 位 GitHub 贡献者")
+
+          # ============================================================
+          # 第三步：对比 README，找出新贡献者并更新
+          # ============================================================
+          with open("README.md", "r", encoding="utf-8") as f:
+              readme_content = f.read()
+
+          existing_users = set(
+              u.lower() for u in re.findall(r'href="https://github\.com/([^"]+)"', readme_content)
+          )
+          print(f"=== 当前 README 中已有贡献者: {len(existing_users)} 位 ===")
+
+          bot_patterns = re.compile(r'\[bot\]|dependabot|github-actions|renovate|actions-user', re.IGNORECASE)
+
+          # 按贡献数降序排列
+          sorted_contributors = sorted(all_logins.values(), key=lambda x: x.get("contributions", 0), reverse=True)
+
+          new_html_parts = []
+          for contributor in sorted_contributors:
+              login = contributor["login"]
+
+              if bot_patterns.search(login):
+                  print(f"  🤖 跳过机器人: {login}")
+                  continue
+
+              if login.lower() in existing_users:
+                  print(f"  ⏭️  已存在: {login}")
+                  continue
+
+              if not contributor.get("avatar_url"):
+                  print(f"  ⚠️  跳过无头像: {login}")
+                  continue
+
+              print(f"  ✨ 新贡献者: {login}")
+              avatar_url_v4 = re.sub(r'\?v=\d+', '?v=4', contributor["avatar_url"])
+              avatar_48 = f"{avatar_url_v4}&s=48"
+              new_html_parts.append(
+                  f'<a href="{contributor["html_url"]}"><img src="{avatar_48}" width="48" height="48" alt="{login}" title="{login}"/></a>'
+              )
+
+          if not new_html_parts:
+              print("\n✅ 没有新贡献者需要添加，README 无需更新")
+              sys.exit(0)
+
+          print(f"\n📝 添加 {len(new_html_parts)} 位新贡献者到 README...")
+
+          new_html_str = " " + " ".join(new_html_parts)
+          pattern = r'(##\s+贡献者.*?<p align="left">)(.*?)(</p>)'
+
+          def replacer(m):
+              existing_block = m.group(2).rstrip()
+              return m.group(1) + existing_block + new_html_str + "\n" + m.group(3)
+
+          updated_content = re.sub(pattern, replacer, readme_content, flags=re.DOTALL)
+
+          if updated_content == readme_content:
+              print("⚠️  未找到 contributors 区域（## 贡献者 + <p align=\"left\">），跳过更新")
+              sys.exit(0)
+
+          with open("README.md", "w", encoding="utf-8") as f:
+              f.write(updated_content)
+
+          print("✅ README.md 已更新")
+          PYEOF
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet README.md; then
+            echo "✅ README.md 无变化，无需提交"
+            exit 0
+          fi
+
+          git add README.md
+          git commit -m "chore: 自动更新 README contributors [skip ci]"
+          git push origin main
+          echo "🚀 已推送更新到 main 分支"

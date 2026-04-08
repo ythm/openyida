@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install --ignore-scripts
+
+    - name: Validate project structure
+      run: node scripts/validate-structure.js
+
+    - name: Check JavaScript syntax
+      run: |
+        node --check bin/yida.js
+        find lib -name "*.js" | while read f; do node --check "$f"; done
+        echo "All JS files passed syntax check"
+
+  test:
+    name: Test (Node ${{ matrix.node-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ['18', '20', '22']
+        exclude:
+          # Only run full matrix on ubuntu; other OS use LTS only
+          - os: macos-latest
+            node-version: '18'
+          - os: macos-latest
+            node-version: '22'
+          - os: windows-latest
+            node-version: '18'
+          - os: windows-latest
+            node-version: '22'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install --ignore-scripts
+
+    - name: Run tests
+      run: npm test

@@ -1,0 +1,45 @@
+{
+  "env": {
+    "es2021": true,
+    "node": true
+  },
+  "extends": "eslint:recommended",
+  "plugins": ["import"],
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "commonjs"
+  },
+  "rules": {
+    "import/no-unresolved": ["error", { "commonjs": true, "ignore": ["@alicloud/", "ali-oss", "qrcode", "playwright", "uglify-js", "glob"] }],
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "semi": ["error", "always"],
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": "off",
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "no-throw-literal": "error",
+    "no-return-await": "error",
+    "no-trailing-spaces": "error",
+    "eol-last": ["error", "always"]
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.test.js"],
+      "env": {
+        "es2021": true,
+        "node": true,
+        "jest": true
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    "project/pages/dist/",
+    "**/*.compile.js",
+    "lib/core/babel-transform/"
+  ]
+}
