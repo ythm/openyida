@@ -78,6 +78,7 @@ openyida doctor --fix
 用户提到"登录/Cookie 失效/切换账号" → `yida-login` 或 `yida-logout`
 用户提到"公式/计算字段/函数" → `yida-formula`
 用户提到"闪记/会议纪要/PRD" → `yida-flash-note-to-prd`
+用户提到"Sequence/主键冲突/自增ID错误" → `yida-db-seq-fix`
 
 **关键区分**：
 - `yida-report`（宜搭原生报表页面，16 种内置图表）vs `yida-chart`（ECharts 自定义大屏，依赖 yida-report 作数据源）
@@ -180,6 +181,7 @@ openyida doctor --fix
 |------|------|------|
 | **yida-flash-note-to-prd** | [`skills/yida-flash-note-to-prd/SKILL.md`](skills/yida-flash-note-to-prd/SKILL.md) | 钉钉闪记转高质量 Prompt |
 | **yida-export-conversation** | [`skills/yida-export-conversation/SKILL.md`](skills/yida-export-conversation/SKILL.md) | 导出 AI 对话记录 |
+| **yida-db-seq-fix** | [`skills/yida-db-seq-fix/SKILL.md`](skills/yida-db-seq-fix/SKILL.md) | PostgreSQL Sequence 自动修复（检测并修复主键冲突问题） |
 | **large-file-write** | [`skills/large-file-write/SKILL.md`](skills/large-file-write/SKILL.md) | 大文件写入（解决 heredoc 截断问题） |
 
 ### 共享参考文档

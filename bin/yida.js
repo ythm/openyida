@@ -33,6 +33,11 @@
  *   openyida data <action> <resource> [args]            统一数据管理（表单/流程/任务/子表单）
  *   openyida task-center <type> [--page N] [--size N] [--keyword TEXT]  全局任务中心（待办/我创建的/我已处理/抄送/代提交）
  *   openyida doctor [选项]                              检查环境依赖，诊断应用问题
+ *   openyida db-index --form <formUuid>                 检测专属数据库索引
+ *   openyida db-index --form <formUuid> --suggest       获取索引建议
+ *   openyida db-index --app <appType> --list            查看所有表单索引概览
+ *   openyida db-seq-fix                                 检查 Sequence 起始值
+ *   openyida db-seq-fix --fix                           自动修复 Sequence 起始值
  *   openyida export <appType> [output]                  导出应用所有表单 Schema（生成迁移包）
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
  *   openyida get-permission <appType> <formUuid>        查询表单权限配置
@@ -103,6 +108,11 @@ openyida - 宜搭命令行工具
     --create-ticket                                            根据诊断结果创建工单
     --create-voc                                               创建 VOC（需求反馈）
     --auto-submit                                              自动判断并提交工单或 VOC
+  db-index --form <formUuid>                                   检测专属数据库索引
+  db-index --form <formUuid> --suggest                         获取索引建议
+  db-index --app <appType> --list                              查看所有表单索引概览
+  db-seq-fix                                                   检查 Sequence 起始值
+  db-seq-fix --fix                                             自动修复 Sequence 起始值
   auth status                                                  查看当前登录状态
   auth login                                                   执行登录
   auth refresh                                                 刷新登录态
@@ -168,6 +178,11 @@ openyida - 宜搭命令行工具
   openyida doctor --create-ticket                 创建工单
   openyida doctor --create-voc                    创建 VOC
   openyida doctor --auto-submit                   自动判断并提交
+  openyida db-index --form FORM-XXX              检测表单索引
+  openyida db-index --form FORM-XXX --suggest    获取索引建议
+  openyida db-index --app APP-XXX --list         查看应用所有表单索引
+  openyida db-seq-fix                            检查 Sequence 起始值
+  openyida db-seq-fix --fix                      自动修复 Sequence 起始值
   openyida export-conversation                   导出当前对话记录
   openyida export-conversation -o output.md     指定输出路径
   openyida export-conversation --list            列出可用对话
@@ -476,6 +491,18 @@ async function main() {
 
     case 'doctor': {
       const { run } = require('../lib/core/doctor');
+      await run(args);
+      break;
+    }
+
+    case 'db-index': {
+      const { run } = require('../lib/db/db-index');
+      await run(args);
+      break;
+    }
+
+    case 'db-seq-fix': {
+      const { run } = require('../lib/db/db-seq-fix');
       await run(args);
       break;
     }
