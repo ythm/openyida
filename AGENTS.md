@@ -1,6 +1,6 @@
 # OpenYida — AI Agent 开发指引
 
-本文件为 AI 编程助手（Claude Code、Aone Copilot、Cursor、OpenCode 等）提供项目上下文，帮助 AI 更准确地理解项目结构和开发规范。
+本文件为 AI 编程助手（Claude Code、Aone Copilot、Cursor、OpenCode、Qoder、悟空 等）提供项目上下文，帮助 AI 更准确地理解项目结构和开发规范。
 
 ## 项目简介
 
@@ -17,11 +17,17 @@ openyida/
 ├── lib/
 │   ├── core/                # 核心基础模块
 │   │   ├── utils.js         # 公共工具函数（Cookie、HTTP、路径等）
+│   │   ├── chalk.js         # 终端彩色输出公共样式模块（统一 chalk 风格）
 │   │   ├── i18n.js          # 国际化支持
-│   │   ├── locales/         # 语言包（zh-CN、en-US）
-│   │   ├── env.js           # 检测 AI 工具环境（Claude/Cursor/Copilot 等）
+│   │   ├── locales/         # 语言包（zh、en、zh-TW、ja、ko、fr、de、es、pt、ar、hi、vi）
+│   │   ├── env.js           # 检测 AI 工具环境（Claude/Cursor/Copilot/Qoder/悟空 等）
+│   │   ├── env-cmd.js       # env 命令入口（显示当前环境信息）
+│   │   ├── env-manager.js   # 多环境配置管理（私有化部署多环境切换）
 │   │   ├── copy.js          # 初始化 project 工作目录
+│   │   ├── sample.js        # sample 命令（输出代码示例到工作目录）
 │   │   ├── check-update.js  # 版本检测（每天一次）
+│   │   ├── check-data.js    # 数据异常检测（流程表单数据校验）
+│   │   ├── update.js        # self-update 命令（通过 npm 自动更新 openyida）
 │   │   ├── doctor.js        # 环境诊断与自动修复
 │   │   ├── query-data.js    # 统一数据管理命令（表单/流程/任务/子表单）
 │   │   ├── task-center.js   # 全局任务中心（待办/我创建的/我已处理/抄送/代提交）
@@ -101,6 +107,8 @@ openyida/
 │   │   ├── chart-builder.js       # 图表 Schema 构建
 │   │   ├── http.js                # 报表 HTTP 请求封装
 │   │   └── constants.js           # 常量与 ID 生成工具
+│   ├── db/                  # 数据库工具
+│   │   └── db-seq-fix.js          # PostgreSQL Sequence 自动修复（解决主键序列漂移）
 ├── project/
 │   ├── config.json          # 应用配置（appType、pageId 等）
 │   └── pages/               # 自定义页面源码目录
@@ -161,6 +169,9 @@ openyida/
 3. **登录态**存储在本地缓存，不要在代码中硬编码任何凭证
 4. **测试**：运行 `npm test` 执行 `tests/` 下的单元测试
 5. **JS 语法检查**：`node --check <file>` 验证语法正确性
+6. **终端输出样式**：统一使用 `lib/core/chalk.js` 提供的公共样式模块，不要在各命令文件中单独 `require('chalk')` 并自定义颜色
+7. **国际化**：新增用户可见的文案时，需同步在 `lib/core/locales/` 下所有 12 个语言包中添加对应 key
+8. **私有化部署**：多环境配置通过 `lib/core/env-manager.js` 管理，不要在命令文件中硬编码 API 域名
 
 ## 常见任务示例
 

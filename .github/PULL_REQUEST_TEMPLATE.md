@@ -10,6 +10,8 @@
 - [ ] ♻️ 代码重构
 - [ ] 🔧 配置 / CI 变更
 - [ ] ⬆️ 依赖升级
+- [ ] 🌐 国际化（i18n）
+- [ ] 🎨 UI / 终端输出优化
 
 ## 关联 Issue
 
@@ -18,8 +20,11 @@
 ## 测试
 
 - [ ] 本地运行 `npm test` 通过
-- [ ] JS 语法检查通过：`node --check bin/yida.js`
+- [ ] JS 语法检查通过：`node --check bin/yida.js && find lib -name "*.js" | xargs -I{} node --check {}`
 - [ ] 已在真实宜搭环境测试过相关功能（如适用）
+- [ ] 新增 CLI 命令已在 `bin/yida.js` 注册，并更新了 `README.md` 命令一览表
+- [ ] 新增 i18n key 已同步到所有语言包（`lib/core/locales/`）
+- [ ] 私有化部署场景已验证（如适用）
 
 ## 截图 / 录屏
 

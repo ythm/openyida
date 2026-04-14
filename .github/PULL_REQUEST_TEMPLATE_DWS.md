@@ -10,6 +10,7 @@
 - 提供一键安装和智能检测功能
 - 支持完整的钉钉 API 调用（通讯录、日历、待办、审批、考勤等）
 - 为 AI Agent 提供结构化 JSON 输出
+- 支持 Claude Code / Cursor / Aone Copilot / OpenCode / Qoder / 悟空 等 AI 工具环境
 
 ## ✨ 主要特性
 
@@ -178,6 +179,7 @@ lib/dws/dws-wrapper.js
 - [ ] 数据导出/导入
 - [ ] 定时任务管理
 - [ ] 监控告警集成
+- [ ] 悟空 / Qoder 工作区深度集成
 
 ## 🙏 致谢
 
@@ -189,4 +191,4 @@ lib/dws/dws-wrapper.js
 
 **关联 Issue**: Fixes #XXX (如有)
 **影响范围**: 新增功能，无破坏性变更
-**发布版本**: v2026.03.28
+**发布版本**: v2026.04.15

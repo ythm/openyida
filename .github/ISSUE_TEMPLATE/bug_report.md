@@ -30,8 +30,9 @@ assignees: ''
 - **操作系统**：（如 macOS 15.2 / Ubuntu 24.04 / Windows 11）
 - **Node.js 版本**：（运行 `node -v`）
 - **openyida 版本**：（运行 `openyida --version` 或 `npm list -g openyida`）
-- **AI 工具**：（如 Claude Code / Cursor / Aone Copilot / OpenCode）
+- **AI 工具**：（如 Claude Code / Cursor / Aone Copilot / OpenCode / Qoder / 悟空）
 - **AI 工具版本**：（如适用）
+- **宜搭部署类型**：（公有云 / 私有化部署，如适用）
 
 ## 错误日志
 
