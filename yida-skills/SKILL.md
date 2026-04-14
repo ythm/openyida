@@ -69,6 +69,7 @@ openyida doctor --fix
 用户提到"创建表单/新增字段/更新表单" → `yida-create-form-page`
 用户提到"自定义页面/JSX/React/可视化大屏" → `yida-custom-page` + `yida-publish-page`
 用户提到"审批流程/流程表单/审批节点" → `yida-create-process` 或 `yida-process-rule`
+用户提到"流程预览/流程图/审批进度/流程可视化" → `openyida process preview`（直接执行）
 用户提到"数据查询/数据管理/表单实例" → `yida-data-management`
 用户提到"报表/图表/ECharts/数据大屏" → `yida-report`（原生报表）或 `yida-chart`（ECharts 高级）
 用户提到"连接器/外部接口/HTTP 接入" → `yida-connector`
@@ -148,6 +149,7 @@ openyida doctor --fix
 |------|------|------|
 | **yida-create-process** | [`skills/yida-create-process/SKILL.md`](skills/yida-create-process/SKILL.md) | 一键创建流程表单（创建+转流程+配置） |
 | **yida-process-rule** | [`skills/yida-process-rule/SKILL.md`](skills/yida-process-rule/SKILL.md) | 为已有表单配置审批规则（条件分支/审批节点/字段权限） |
+| **process-preview** | `openyida process preview <appType> <processInstanceId> [--output <path>]` | 预览流程实例，生成可视化流程图 HTML（高亮当前审批节点，直接执行，无需子技能） |
 | **yida-integration** | [`skills/yida-integration/SKILL.md`](skills/yida-integration/SKILL.md) | 创建集成&自动化逻辑流（触发事件/通知/数据操作） |
 
 ### 自定义页面开发
