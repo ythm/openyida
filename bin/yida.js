@@ -42,6 +42,7 @@
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
  *   openyida get-permission <appType> <formUuid>        查询表单权限配置
  *   openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
+ *   openyida process preview <appType> <processInstanceId> [--output <path>]  预览流程实例（生成可视化流程图）
  *   openyida connector list [选项]                       列出 HTTP 连接器
  *   openyida connector create "名称" "域名" --operations <file> [选项]  创建连接器
  *   openyida connector detail <connector-id>             查看连接器详情
@@ -466,6 +467,25 @@ async function main() {
       }
       const { run: runCreateProcess } = require('../lib/process/create-process');
       await runCreateProcess(args);
+      break;
+    }
+
+    case 'process': {
+      const subCommand = args[0];
+      const subArgs = args.slice(1);
+
+      if (subCommand === 'preview') {
+        if (subArgs.length < 2) {
+          console.error(t('cli.process_preview_usage'));
+          console.error(t('cli.process_preview_example'));
+          process.exit(1);
+        }
+        const { run: runPreviewProcess } = require('../lib/process/preview-process');
+        await runPreviewProcess(subArgs);
+      } else {
+        console.error(t('cli.process_usage'));
+        process.exit(1);
+      }
       break;
     }
 
