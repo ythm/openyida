@@ -188,7 +188,7 @@ function printHelp() {
   console.log(`    ${DIM}${RESET} openyida create-app "${t('help.quickstart_app_name')}"`);
   console.log(`    ${DIM}${RESET} openyida create-form create APP_XXX "${t('help.quickstart_form_name')}" fields.json`);
   console.log('');
-  console.log(`  ${DIM}${t('help.docs')} https://github.com/openyida/openyida${RESET}`);
+  console.log(`  ${DIM}${t('help.docs')} https://openyida.ai  ·  https://github.com/openyida/openyida${RESET}`);
   console.log('');
 }
 
