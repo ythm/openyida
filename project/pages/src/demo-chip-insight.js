@@ -542,7 +542,9 @@ function formatNumber(num) {
 function formatDate(timestamp) {
   if (!timestamp) return '';
   var d = new Date(Number(timestamp));
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  var month = d.getMonth() + 1;
+  var day = d.getDate();
+  return d.getFullYear() + '-' + (month < 10 ? '0' + month : '' + month) + '-' + (day < 10 ? '0' + day : '' + day);
 }
 
 function getImpactColor(impact) {

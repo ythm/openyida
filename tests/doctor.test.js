@@ -74,15 +74,17 @@ function cleanupTempDir(tmpDir) {
   try {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   } catch (error) {
-    // Windows 上文件句柄释放较慢，EBUSY 时延迟重试一次
+    // Windows 上文件句柄释放有延迟，可能导致 EBUSY，加入重试
     if (error.code === 'EBUSY' || error.code === 'EPERM') {
-      setTimeout(() => {
+      const maxRetries = 3;
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-          fs.rmSync(tmpDir, { recursive: true, force: true });
-        } catch {
-          // 清理失败不影响测试结果，静默忽略
+          fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+          return;
+        } catch (err) {
+          if (attempt === maxRetries - 1) return; // 最后一次仍失败则静默忽略
         }
-      }, 200);
+      }
     }
   }
 }

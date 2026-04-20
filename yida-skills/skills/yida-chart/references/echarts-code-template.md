@@ -407,9 +407,9 @@ export function formatDate(timestamp) {
   var date = new Date(Number(timestamp));
   if (isNaN(date.getTime())) return '-';
   var year = date.getFullYear();
-  var month = String(date.getMonth() + 1).padStart(2, '0');
-  var day = String(date.getDate()).padStart(2, '0');
-  return year + '-' + month + '-' + day;
+  var month = date.getMonth() + 1;
+  var day = date.getDate();
+  return year + '-' + (month < 10 ? '0' + month : '' + month) + '-' + (day < 10 ? '0' + day : '' + day);
 }
 ```
 

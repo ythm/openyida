@@ -34,6 +34,7 @@
  *   openyida import <file> [name]                       导入迁移包，在目标环境重建应用
  *   openyida get-permission <appType> <formUuid>        查询表单权限配置
  *   openyida save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
+ *   openyida process preview <appType> <processInstanceId> [--output <path>]  预览流程实例（生成可视化流程图）
  *   openyida connector list [选项]                       列出 HTTP 连接器
  *   openyida connector create "名称" "域名" --operations <file> [选项]  创建连接器
  *   openyida connector detail <connector-id>             查看连接器详情
@@ -51,6 +52,7 @@
  *   openyida create-report <appType> "<报表名称>" <图表定义JSON或文件路径>  创建宜搭报表
  *   openyida append-chart <appType> <reportId> <图表定义JSON或文件路径>    向已有报表追加图表
  *   openyida dws <command> [args]                        钉钉 CLI（通讯录/日历/待办/审批等）
+ *   openyida update                                       检查并更新 openyida 到最新版本
  */
 
 'use strict';
@@ -58,6 +60,7 @@
 const { checkUpdate } = require('../lib/core/check-update');
 const { version: currentVersion } = require('../package.json');
 const { t } = require('../lib/core/i18n');
+const { warn, fail } = require('../lib/core/chalk');
 
 // 异步检查更新，fire-and-forget，不阻塞主流程
 const updateCheckPromise = checkUpdate(currentVersion);
@@ -66,107 +69,129 @@ const command = process.argv[2];
 const args = process.argv.slice(3);
 
 function printHelp() {
-  console.log(`
-openyida - 宜搭命令行工具
+  const RESET   = '\x1b[0m';
+  const BOLD    = '\x1b[1m';
+  const DIM     = '\x1b[2m';
+  const CYAN    = '\x1b[36m';
+  const GREEN   = '\x1b[32m';
+  const YELLOW  = '\x1b[33m';
 
-用法：
-  openyida <命令> [参数...]（别名：yida）
+  const SEP = `${DIM}${'─'.repeat(60)}${RESET}`;
 
-命令：
-  env                                                          检测当前 AI 工具环境和登录态
-  copy [--force]                                               复制 project 工作目录到当前 AI 工具环境
-  login                                                        登录态管理（优先缓存，否则扫码）
-  logout                                                       退出登录 / 切换账号
-  create-app "<名称>" [描述] [图标] [颜色] [主题色] [导航风格] [布局]   创建应用，输出 appType
-  create-page <appType> "<页面名>"                             创建自定义页面，输出 pageId
-  create-form create <appType> "<表单名>" <字段JSON> [--layout <布局>] [--theme <主题>] [--label-align <对齐>]  创建表单页面
-  create-form update <appType> <formUuid> <修改JSON>           更新表单页面
-  get-schema <appType> <formUuid>                              获取表单 Schema
-  publish <源文件路径> <appType> <formUuid>                    编译并发布自定义页面
-  verify-short-url <appType> <formUuid> <url>                  验证短链接 URL 是否可用
-  save-share-config <appType> <formUuid> <url> <isOpen> [auth] 保存公开访问/分享配置
-  get-page-config <appType> <formUuid>                         查询页面公开访问/分享配置
-  update-form-config <appType> <formUuid> <isRenderNav> <title> 更新表单配置
-  update-app <appType> --name "新名称" [--desc "描述"] [--icon "图标"] 更新应用信息
-  data <action> <resource> [args]                              统一数据管理（表单/流程/任务/子表单）
-  doctor [选项]                                                检查环境依赖，诊断应用问题
-    --fix / --repair                                           诊断并自动修复
-    --production --app <appId>                                 线上应用诊断
-    --monitor                                                  启动实时健康度监控
-    --report <format>                                          生成诊断报告（json | markdown | html）
-    --create-ticket                                            根据诊断结果创建工单
-    --create-voc                                               创建 VOC（需求反馈）
-    --auto-submit                                              自动判断并提交工单或 VOC
-  auth status                                                  查看当前登录状态
-  auth login                                                   执行登录
-  auth refresh                                                 刷新登录态
-  auth logout                                                  退出登录
-  org list                                                     列出可访问的组织
-  org switch --corp-id <corpId>                                切换组织（无需重新登录）
-  get-permission <appType> <formUuid>                          查询表单权限配置
-  save-permission <appType> <formUuid> [--data-permission <json>] [--action-permission <json>]  保存表单权限配置
-  configure-process <appType> <formUuid> <processDefinitionFile> [processCode]  配置并发布流程
-  create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile>  创建流程表单（一体化）
-  create-process <appType> --formUuid <formUuid> <processDefinitionFile>         复用已有表单创建流程
-  connector list [选项]                                          列出 HTTP 连接器
-  connector create "名称" "域名" --operations <file> [选项]      创建连接器
-  connector detail <connector-id>                               查看连接器详情
-  connector delete <connector-id> [--force]                     删除连接器
-  connector add-action --operations <file> --connector-id <id>  添加执行动作到连接器
-  connector list-actions <connector-id>                         列出执行动作
-  connector delete-action <connector-id> <operation-id>         删除执行动作
-  connector test --connector-id <id> --action <actionId>        测试执行动作
-  connector list-connections <connector-id>                     列出鉴权账号
-  connector create-connection <connector-id> <name> [选项]      创建鉴权账号
-  connector smart-create --curl "curl命令" [选项]               智能创建连接器
-  connector parse-api [选项]                                    解析接口信息
-  connector gen-template [输出路径]                              生成接口文档模板
-  dws <command> [args]                                          钉钉 CLI（通讯录/日历/待办/审批等）
-  create-report <appType> "<报表名称>" <图表定义 JSON 或文件路径>   创建宜搭报表
-  append-chart <appType> <reportId> <图表定义 JSON 或文件路径>      向已有报表追加图表
-  export-conversation [选项]                                      导出 AI 对话记录
-    --output, -o <path>                                           指定输出文件路径
-    --input, -i <file>                                            指定输入对话文件
-    --latest                                                      只导出最新对话（默认）
-    --list                                                        列出可用的对话记录
+  /**
+   * 渲染一组命令列表。
+   * @param {string} groupTitle - 分组标题
+   * @param {Array<[string, string]>} commands - [命令, 描述] 数组
+   */
+  function renderGroup(groupTitle, commands) {
+    console.log(`\n  ${BOLD}${CYAN}${groupTitle}${RESET}`);
+    const maxCmdLen = Math.max(...commands.map(([cmd]) => cmd.length));
+    const padWidth = Math.min(maxCmdLen + 2, 50);
+    for (const [cmd, desc] of commands) {
+      console.log(`    ${GREEN}${cmd.padEnd(padWidth)}${RESET}${DIM}${desc}${RESET}`);
+    }
+  }
 
-示例：
-  openyida login
-  openyida logout
-  openyida create-app "考勤管理"
-  openyida create-app "考勤管理" "员工考勤系统" "xian-daka" "#00B853" "deepBlue" "dark" "slide"
-  openyida create-app "党建管理" "党员管理系统" "xian-zhengfu" "#FF4D4F" "red" "light" "ver"
-  openyida create-page APP_XXX "游戏主页"
-  openyida create-form create APP_XXX "员工信息" fields.json
-  openyida create-form update APP_XXX FORM-XXX '[{"action":"add","field":{"type":"TextField","label":"备注"}}]'
-  openyida get-schema APP_XXX FORM-XXX
-  openyida publish pages/src/home.jsx APP_XXX FORM-XXX
-  openyida verify-short-url APP_XXX FORM-XXX /o/myapp
-  openyida save-share-config APP_XXX FORM-XXX /o/myapp y n
-  openyida get-page-config APP_XXX FORM-XXX
-  openyida update-form-config APP_XXX FORM-XXX false "页面标题"
-  openyida data query form APP_XXX FORM-XXX --page 1 --size 20
-  openyida dws contact user search --keyword "悟空"
-  openyida dws calendar event list
-  openyida dws todo task create --title "任务"
-  openyida create-report APP_XXX "销售报表" charts.json
-  openyida append-chart APP_XXX REPORT-XXX charts.json
-  openyida configure-process APP_XXX FORM-YYY process-def.json
-  openyida create-process APP_XXX "订单处理表" fields.json process-def.json
-  openyida create-process APP_XXX --formUuid FORM-YYY process-def.json
-  openyida doctor                                 完整诊断
-  openyida doctor --fix                           诊断并自动修复
-  openyida doctor --production --app APP_XXX      线上应用诊断
-  openyida doctor --monitor                       实时监控
-  openyida doctor --report markdown               生成 Markdown 报告
-  openyida doctor --create-ticket                 创建工单
-  openyida doctor --create-voc                    创建 VOC
-  openyida doctor --auto-submit                   自动判断并提交
-  openyida export-conversation                   导出当前对话记录
-  openyida export-conversation -o output.md     指定输出路径
-  openyida export-conversation --list            列出可用对话
-`);
-  console.log(t('cli.help'));
+  // ── 标题 ──
+  console.log('');
+  console.log(`  ${BOLD}${CYAN}OpenYida${RESET} ${DIM}v${currentVersion}${RESET}`);
+  console.log(`  ${DIM}${t('help.subtitle')}${RESET}`);
+  console.log(`  ${DIM}"We are on the verge of the Singularity"${RESET}`);
+  console.log('');
+  console.log(`  ${YELLOW}${t('help.usage')}${RESET}  openyida <command> [args...]`);
+  console.log(`  ${DIM}${t('help.alias')}${RESET}  yida`);
+  console.log(SEP);
+
+  // ── 环境 & 认证 ──
+  renderGroup(t('help.group_auth'), [
+    ['login [--qr]',                          t('help.cmd_login')],
+    ['logout',                                 t('help.cmd_logout')],
+    ['auth <status|login|refresh|logout>',     t('help.cmd_auth')],
+    ['org <list|switch>',                      t('help.cmd_org')],
+    ['env',                                    t('help.cmd_env')],
+  ]);
+
+  // ── 应用管理 ──
+  renderGroup(t('help.group_app'), [
+    ['create-app "<name>" [options]',          t('help.cmd_create_app')],
+    ['update-app <appType> --name "..."',      t('help.cmd_update_app')],
+    ['export <appType> [output]',              t('help.cmd_export')],
+    ['import <file> [name]',                   t('help.cmd_import')],
+  ]);
+
+  // ── 表单 & 页面 ──
+  renderGroup(t('help.group_form'), [
+    ['create-form create <appType> ...',       t('help.cmd_create_form')],
+    ['create-form update <appType> ...',       t('help.cmd_update_form')],
+    ['get-schema <appType> <formUuid>',        t('help.cmd_get_schema')],
+    ['create-page <appType> "<name>"',         t('help.cmd_create_page')],
+    ['publish <src> <appType> <formUuid>',     t('help.cmd_publish')],
+    ['update-form-config <appType> ...',       t('help.cmd_update_form_config')],
+  ]);
+
+  // ── 数据 & 权限 ──
+  renderGroup(t('help.group_data'), [
+    ['data <action> <resource> [args]',        t('help.cmd_data')],
+    ['task-center <type> [options]',           t('help.cmd_task_center')],
+    ['get-permission <appType> <formUuid>',    t('help.cmd_get_permission')],
+    ['save-permission <appType> <formUuid> ...', t('help.cmd_save_permission')],
+  ]);
+
+  // ── 流程 ──
+  renderGroup(t('help.group_process'), [
+    ['configure-process <appType> ...',        t('help.cmd_configure_process')],
+    ['create-process <appType> ...',           t('help.cmd_create_process')],
+    ['process preview <appType> ...',          t('help.cmd_process_preview')],
+  ]);
+
+  // ── 页面配置 & 分享 ──
+  renderGroup(t('help.group_share'), [
+    ['verify-short-url <appType> ...',         t('help.cmd_verify_url')],
+    ['save-share-config <appType> ...',        t('help.cmd_save_share')],
+    ['get-page-config <appType> <formUuid>',   t('help.cmd_get_page_config')],
+  ]);
+
+  // ── 报表 ──
+  renderGroup(t('help.group_report'), [
+    ['create-report <appType> "<name>" ...',   t('help.cmd_create_report')],
+    ['append-chart <appType> <reportId> ...',  t('help.cmd_append_chart')],
+  ]);
+
+  // ── 连接器 ──
+  renderGroup(t('help.group_connector'), [
+    ['connector list',                         t('help.cmd_connector_list')],
+    ['connector create "name" "domain" ...',   t('help.cmd_connector_create')],
+    ['connector detail <id>',                  t('help.cmd_connector_detail')],
+    ['connector delete <id>',                  t('help.cmd_connector_delete')],
+    ['connector smart-create --curl "..."',    t('help.cmd_connector_smart')],
+    ['connector <sub-command> --help',         t('help.cmd_connector_more')],
+  ]);
+
+  // ── 集成 & 钉钉 ──
+  renderGroup(t('help.group_integration'), [
+    ['integration create <appType> ...',       t('help.cmd_integration')],
+    ['dws <command> [args]',                   t('help.cmd_dws')],
+  ]);
+
+  // ── 工具 ──
+  renderGroup(t('help.group_utility'), [
+    ['copy [--force]',                         t('help.cmd_copy')],
+    ['doctor [--fix]',                         t('help.cmd_doctor')],
+    ['update',                                 t('help.cmd_update')],
+    ['export-conversation [options]',          t('help.cmd_export_conversation')],
+    ['cdn-config / cdn-upload / cdn-refresh',  t('help.cmd_cdn')],
+  ]);
+
+  // ── 快速上手 ──
+  console.log(SEP);
+  console.log(`\n  ${BOLD}${CYAN}${t('help.quickstart_title')}${RESET}`);
+  console.log(`    ${DIM}${RESET} openyida login`);
+  console.log(`    ${DIM}${RESET} openyida create-app "${t('help.quickstart_app_name')}"`);
+  console.log(`    ${DIM}${RESET} openyida create-form create APP_XXX "${t('help.quickstart_form_name')}" fields.json`);
+  console.log(`    ${DIM}${RESET} openyida dws contact user search --keyword "张三"`);
+  console.log('');
+  console.log(`  ${DIM}${t('help.docs')} https://openyida.ai  ·  https://github.com/openyida/openyida${RESET}`);
+  console.log('');
 }
 
 /**
@@ -301,8 +326,8 @@ async function main() {
       } else if (subCommand === 'logout') {
         authLogout();
       } else {
-        console.error(t('cli.auth_usage'));
-        console.error(t('cli.auth_example'));
+        warn(t('cli.auth_usage'));
+        warn(t('cli.auth_example'));
         process.exit(1);
       }
       break;
@@ -316,14 +341,14 @@ async function main() {
       if (subCommand === 'list') {
         const cookieData = loadCookieData();
         if (!cookieData || !cookieData.cookies) {
-          console.error(t('org.no_login'));
+          warn(t('org.no_login'));
           process.exit(1);
         }
         await listOrganizations(cookieData);
       } else if (subCommand === 'switch') {
         const cookieData = loadCookieData();
         if (!cookieData || !cookieData.cookies) {
-          console.error(t('org.no_login'));
+          warn(t('org.no_login'));
           process.exit(1);
         }
 
@@ -337,8 +362,8 @@ async function main() {
           await interactiveSwitch(cookieData);
         }
       } else {
-        console.error(t('cli.org_usage'));
-        console.error(t('cli.org_example'));
+        warn(t('cli.org_usage'));
+        warn(t('cli.org_example'));
         process.exit(1);
       }
       break;
@@ -363,6 +388,12 @@ async function main() {
       break;
     }
 
+    case 'list-forms': {
+      const { run } = require('../lib/app/list-forms');
+      await run(args);
+      break;
+    }
+
     case 'get-schema': {
       const { run } = require('../lib/app/get-schema');
       await run(args);
@@ -375,8 +406,8 @@ async function main() {
       const skipLint = args.includes('--skip-lint');
       const filteredArgs = args.filter(arg => arg !== '--skip-lint');
       if (filteredArgs.length < 3) {
-        console.error(t('cli.publish_usage'));
-        console.error(t('cli.publish_example'));
+        warn(t('cli.publish_usage'));
+        warn(t('cli.publish_example'));
         process.exit(1);
       }
       const [sourceFile, appType, formUuid] = filteredArgs;
@@ -392,8 +423,8 @@ async function main() {
 
     case 'verify-short-url': {
       if (args.length < 3) {
-        console.error(t('cli.verify_usage'));
-        console.error(t('cli.verify_example'));
+        warn(t('cli.verify_usage'));
+        warn(t('cli.verify_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -403,8 +434,8 @@ async function main() {
 
     case 'save-share-config': {
       if (args.length < 4) {
-        console.error(t('cli.share_usage'));
-        console.error(t('cli.share_example'));
+        warn(t('cli.share_usage'));
+        warn(t('cli.share_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -414,8 +445,8 @@ async function main() {
 
     case 'get-page-config': {
       if (args.length < 2) {
-        console.error(t('cli.page_config_usage'));
-        console.error(t('cli.page_config_example'));
+        warn(t('cli.page_config_usage'));
+        warn(t('cli.page_config_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -425,8 +456,8 @@ async function main() {
 
     case 'update-form-config': {
       if (args.length < 4) {
-        console.error(t('cli.form_config_usage'));
-        console.error(t('cli.form_config_example'));
+        warn(t('cli.form_config_usage'));
+        warn(t('cli.form_config_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -436,8 +467,8 @@ async function main() {
 
     case 'update-app': {
       if (args.length < 2) {
-        console.error(t('cli.update_app_usage'));
-        console.error(t('cli.update_app_example'));
+        warn(t('cli.update_app_usage'));
+        warn(t('cli.update_app_example'));
         process.exit(1);
       }
       const { run: runUpdateApp } = require('../lib/app/update-app');
@@ -447,8 +478,8 @@ async function main() {
 
     case 'data': {
       if (args.length < 2) {
-        console.error('用法: openyida data <action> <resource> [args] [options]');
-        console.error('示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20');
+        warn('用法: openyida data <action> <resource> [args] [options]');
+        warn('示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20');
         process.exit(1);
       }
       const { run: runDataManagement } = require('../lib/core/query-data');
@@ -464,9 +495,9 @@ async function main() {
 
     case 'export': {
       if (args.length < 1) {
-        console.error(t('cli.export_usage'));
-        console.error(t('cli.export_example1'));
-        console.error(t('cli.export_example2'));
+        warn(t('cli.export_usage'));
+        warn(t('cli.export_example1'));
+        warn(t('cli.export_example2'));
         process.exit(1);
       }
       const { run: runExport } = require('../lib/app/export-app');
@@ -476,9 +507,9 @@ async function main() {
 
     case 'import': {
       if (args.length < 1) {
-        console.error(t('cli.import_usage'));
-        console.error(t('cli.import_example1'));
-        console.error(t('cli.import_example2'));
+        warn(t('cli.import_usage'));
+        warn(t('cli.import_example1'));
+        warn(t('cli.import_example2'));
         process.exit(1);
       }
       const { run: runImport } = require('../lib/app/import-app');
@@ -488,8 +519,8 @@ async function main() {
 
     case 'get-permission': {
       if (args.length < 2) {
-        console.error(t('cli.get_permission_usage'));
-        console.error(t('cli.get_permission_example'));
+        warn(t('cli.get_permission_usage'));
+        warn(t('cli.get_permission_example'));
         process.exit(1);
       }
       const { run: runGetPermission } = require('../lib/permission/get-permission');
@@ -499,8 +530,8 @@ async function main() {
 
     case 'save-permission': {
       if (args.length < 2) {
-        console.error(t('cli.save_permission_usage'));
-        console.error(t('cli.save_permission_example'));
+        warn(t('cli.save_permission_usage'));
+        warn(t('cli.save_permission_example'));
         process.exit(1);
       }
       const { run: runSavePermission } = require('../lib/permission/save-permission');
@@ -510,8 +541,8 @@ async function main() {
 
     case 'configure-process': {
       if (args.length < 3) {
-        console.error(t('cli.configure_process_usage'));
-        console.error(t('cli.configure_process_example'));
+        warn(t('cli.configure_process_usage'));
+        warn(t('cli.configure_process_example'));
         process.exit(1);
       }
       const { run: runConfigureProcess } = require('../lib/process/configure-process');
@@ -521,12 +552,31 @@ async function main() {
 
     case 'create-process': {
       if (args.length < 2) {
-        console.error(t('cli.create_process_usage'));
-        console.error(t('cli.create_process_example'));
+        warn(t('cli.create_process_usage'));
+        warn(t('cli.create_process_example'));
         process.exit(1);
       }
       const { run: runCreateProcess } = require('../lib/process/create-process');
       await runCreateProcess(args);
+      break;
+    }
+
+    case 'process': {
+      const subCommand = args[0];
+      const subArgs = args.slice(1);
+
+      if (subCommand === 'preview') {
+        if (subArgs.length < 2) {
+          warn(t('cli.process_preview_usage'));
+          warn(t('cli.process_preview_example'));
+          process.exit(1);
+        }
+        const { run: runPreviewProcess } = require('../lib/process/preview-process');
+        await runPreviewProcess(subArgs);
+      } else {
+        warn(t('cli.process_usage'));
+        process.exit(1);
+      }
       break;
     }
 
@@ -606,8 +656,8 @@ async function main() {
 
       const modulePath = connectorSubCommands[subCommand];
       if (!modulePath) {
-        console.error(`未知的 connector 子命令: ${subCommand}`);
-        console.error('使用 openyida connector --help 查看可用子命令');
+        warn(`未知的 connector 子命令: ${subCommand}`);
+        warn('使用 openyida connector --help 查看可用子命令');
         process.exit(1);
       }
 
@@ -627,7 +677,7 @@ async function main() {
       const subArgs = args.slice(1);  // 路由层消费 subCommand，传递剩余参数
 
       if (!subCommand || subCommand === '--help' || subCommand === '-h') {
-        console.error(t('cli.integration_help'));
+        warn(t('cli.integration_help'));
         break;
       }
 
@@ -635,8 +685,8 @@ async function main() {
         const { run: runIntegration } = require('../lib/integration/integration-create');
         await runIntegration(subArgs);
       } else {
-        console.error(t('cli.integration_unknown', subCommand));
-        console.error(t('cli.integration_help_hint'));
+        warn(t('cli.integration_unknown', subCommand));
+        warn(t('cli.integration_help_hint'));
         process.exit(1);
       }
       break;
@@ -672,9 +722,15 @@ async function main() {
       break;
     }
 
+    case 'update': {
+      const { runUpdate } = require('../lib/core/update');
+      await runUpdate(currentVersion);
+      break;
+    }
+
     default: {
-      console.error(t('cli.unknown_command', command));
-      console.error(t('cli.run_help'));
+      warn(t('cli.unknown_command', command));
+      warn(t('cli.run_help'));
       process.exit(1);
     }
   }
@@ -683,6 +739,6 @@ async function main() {
 main()
   .then(() => updateCheckPromise)
   .catch((err) => {
-    console.error(t('cli.exec_failed', err.message));
+    warn(t('cli.exec_failed', err.message));
     process.exit(1);
   });

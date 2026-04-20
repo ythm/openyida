@@ -278,7 +278,7 @@ openyida create-process <appType> --formUuid <formUuid> <流程定义文件>
 
 **编写前必须**：
 1. 完整读取 [`skills/yida-custom-page/SKILL.md`](../yida-custom-page/SKILL.md)
-2. 读取模板文件 [`templates/custom-page-template.js`](../yida-custom-page/templates/custom-page-template.js)
+2. 执行 `openyida sample yida-custom-page custom-page-template` 获取模板，再用 `read_file` 读取 `.cache/samples/custom-page-template.js`
 3. 读取 prd 文档和 `.cache/<项目名>-schema.json` 获取所有 ID
 
 **代码文件路径**：`pages/src/<项目名>.js`
@@ -382,10 +382,32 @@ openyida publish <源文件路径> <appType> <formUuid>
 
 ---
 
+## 删除应用（危险操作）
+
+> ⚠️ **删除应用不可逆**，将永久清除该应用下的所有表单、页面、数据记录，无法恢复。
+
+**执行前必须完成以下确认流程，缺一不可：**
+
+1. 向用户展示操作摘要：
+   ```
+   ⚠️ 即将删除应用
+   应用名称：<appName>
+   应用 ID：<appType>
+   影响范围：该应用下的所有表单、页面、数据将被永久删除，不可恢复。
+   请回复「确认删除」继续，或回复「取消」中止操作。
+   ```
+2. **等待用户明确回复**（必须包含"确认"或"确认删除"等明确同意词）
+3. 用户确认后才可执行删除命令
+
+**若用户未明确确认，或回复模糊（如"好的"、"嗯"、"可以"），必须再次询问确认，不得执行删除。**
+
+---
+
 ## 异常处理
 
 | 异常场景 | 处理方式 |
 |---------|----------|
+| 用户要求删除应用 | 必须先展示操作摘要并等待用户明确确认，禁止直接执行（详见上方「删除应用」章节） |
 | 发布时提示登录失效 | 执行 `openyida logout`，再重新执行 `openyida publish`（会自动触发扫码登录） |
 | 一直登录失败 | 不要自主尝试其他登录方案，直接提示登录失败，请联系开发同学 @天晟 |
 | corpId 不一致（发布到错误组织） | 执行决策 4 流程：询问用户选择"重新登录"或"新建应用"，不得强行发布 |

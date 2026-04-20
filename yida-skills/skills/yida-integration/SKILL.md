@@ -465,31 +465,9 @@ trigger
 
 ---
 
-## 字段赋值 valueType 规律总结
+## 变量引用与字段赋值
 
-在 `assignments`（字段赋值）中，`valueType` 决定了 `value` 的解析方式：
-
-| `valueType` | 含义 | `value` 格式示例 |
-| --- | --- | --- |
-| `processVar` | 引用触发表单的字段值 | `"textField_mmq4ldti"`（直接写字段 ID） |
-| `literal` | 固定值（字符串/数字） | `"固定文本"` 或 `0` |
-| `column` | 公式计算 | `"CONCATENATE(#{fieldId_a},#{fieldId_b})"` |
-| `column` | 引用上游节点字段值 | `"${nodeId}.fieldId"` |
-| `column` | 引用上游节点字段并运算 | `"${nodeId}.numberField_xxx+1"` |
-
-> ⚠️ 公式中引用字段变量格式为 `#{fieldId}`（不带组件类型），与消息通知中的 `#{fieldId-ComponentType}#` 不同。
-
----
-
-## 变量引用格式对照
-
-| 使用场景 | 格式 | 示例 |
-| --- | --- | --- |
-| 消息通知标题/内容 | `#{fieldId-ComponentType}#` | `#{textField_abc-TextField}#` |
-| 公式中引用触发表单字段 | `#{fieldId}` | `#{textField_abc}` |
-| 赋值中引用触发表单字段 | `processVar` + `fieldId` | `valueType: "processVar", value: "textField_abc"` |
-| 赋值中引用上游节点字段 | `column` + `${nodeId}.fieldId` | `"${node_xxx}.numberField_abc"` |
-| 条件中引用上游节点字段 | `${nodeId}.fieldId`（作为 `id`） | `"id": "${node_xxx}.employeeField_abc"` |
+> 📖 字段赋值 valueType 规律和变量引用格式对照详见 [references/integration-node-schemas.md](references/integration-node-schemas.md)。
 
 ## 接口说明
 

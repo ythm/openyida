@@ -162,6 +162,15 @@ openyida data create form APP_xxx FORM-商机表 --data-json '{
 
 > 注意：字段名是 `instanceId`（不是 formInstId），三个字段缺一不可
 
+
+## 代码示例
+
+> 需要参考表单字段定义和数据插入写法时，执行以下命令获取示例，再用 `read_file` 读取：
+
+```bash
+openyida sample yida-data-management form-field-template   # 表单字段定义模板（字段类型/必填/选项配置）及数据插入示例
+```
+
 ## 注意事项
 
 - `pageSize` 最大 100，QPS 限制约 40 次/秒
