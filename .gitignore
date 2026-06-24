@@ -72,3 +72,29 @@ project/prd/*
 
 project/tmp/
 examples/
+
+# ── 根目录临时/测试/生成文件（不入库） ────────────
+_temp_*
+_test_*
+_test-*
+temp_*
+test_rjsx*
+fix-all.py
+fix-encoding.py
+optimized_text.txt
+output.txt
+unique_urls.txt
+urls.txt
+form_page.png
+nul
+tmp/
+DEPTH-LEARNING-APP.md
+PAGE_ANALYSIS.md
+
+# ── CLI 包装器（本地生成，不入库） ───────────────
+/openyida
+/openyida.cmd
+/openyida.ps1
+/yida
+/yida.cmd
+/yida.ps1

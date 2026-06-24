@@ -1,0 +1,303 @@
+[
+  {
+    "id": "operation-get-user",
+    "operationId": "getUserByUserId",
+    "summary": "获取用户信息",
+    "description": "通过 userId 获取用户详情，包含 unionId",
+    "url": "v2.0/user/{userId}",
+    "method": "get",
+    "inputs": [
+      {
+        "childList": [
+          {
+            "componentName": "TextField",
+            "defaultValue": "application/json",
+            "desc": "Content-Type",
+            "name": "Content-Type",
+            "required": false
+          }
+        ],
+        "desc": "请求头",
+        "name": "Headers",
+        "paramType": "Object",
+        "required": false
+      },
+      {
+        "childList": [
+          {
+            "componentName": "TextField",
+            "desc": "员工在当前企业的 userId",
+            "label": "用户ID",
+            "name": "userId",
+            "required": true,
+            "__level": 0,
+            "hidden": false
+          }
+        ],
+        "desc": "路径变量",
+        "name": "Path",
+        "paramType": "Object",
+        "required": true
+      },
+      {
+        "childList": [
+          {
+            "componentName": "TextField",
+            "desc": "企业 corpId（可选）",
+            "label": "企业corpId",
+            "name": "corpId",
+            "required": false,
+            "__level": 0,
+            "hidden": false
+          }
+        ],
+        "desc": "查询参数",
+        "name": "Query",
+        "paramType": "Object",
+        "required": false
+      }
+    ],
+    "parameters": {
+      "header": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "path": [
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true,
+          "description": "员工在当前企业的 userId"
+        }
+      ],
+      "query": [
+        {
+          "name": "corpId",
+          "type": "string",
+          "required": false,
+          "description": "企业 corpId（可选）"
+        }
+      ]
+    },
+    "responses": {
+      "type": "object",
+      "properties": {
+        "unionId": { "type": "string", "description": "用户的 unionId" },
+        "userId": { "type": "string", "description": "用户在当前企业的 userId" },
+        "name": { "type": "string", "description": "用户昵称" },
+        "avatarUrl": { "type": "string", "description": "头像URL" },
+        "mobile": { "type": "string", "description": "手机号" },
+        "email": { "type": "string", "description": "邮箱" },
+        "stateCode": { "type": "string", "description": "国际电话区号" },
+        "title": { "type": "string", "description": "职位" },
+        "jobNumber": { "type": "string", "description": "工号" }
+      }
+    },
+    "outputs": [
+      {
+        "defaultValue": "{\"unionId\": \"\", \"userId\": \"\", \"name\": \"\", \"avatarUrl\": \"\"}",
+        "desc": "响应体结构",
+        "name": "Response",
+        "paramType": "Object",
+        "required": false,
+        "childList": [
+          {
+            "_key": "getUserByUserId%unionId",
+            "name": "unionId",
+            "paramType": "String",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "用户unionId"
+          },
+          {
+            "_key": "getUserByUserId%userId",
+            "name": "userId",
+            "paramType": "String",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "企业userId"
+          },
+          {
+            "_key": "getUserByUserId%name",
+            "name": "name",
+            "paramType": "String",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "用户昵称"
+          }
+        ]
+      }
+    ],
+    "origin": true
+  },
+  {
+    "id": "operation-list-nodes",
+    "operationId": "listWorkspaceNodes",
+    "summary": "查询知识库文档列表",
+    "description": "查询知识库（工作空间）下的文档和文件夹列表",
+    "url": "v2.0/wiki/workspaces/{workspaceId}/nodes",
+    "method": "get",
+    "inputs": [
+      {
+        "childList": [
+          {
+            "componentName": "TextField",
+            "defaultValue": "application/json",
+            "desc": "Content-Type",
+            "name": "Content-Type",
+            "required": false
+          }
+        ],
+        "desc": "请求头",
+        "name": "Headers",
+        "paramType": "Object",
+        "required": false
+      },
+      {
+        "childList": [
+          {
+            "componentName": "TextField",
+            "desc": "知识库工作空间 ID (spaceUuid)",
+            "label": "工作空间ID",
+            "name": "workspaceId",
+            "required": true,
+            "__level": 0,
+            "hidden": false
+          }
+        ],
+        "desc": "路径变量",
+        "name": "Path",
+        "paramType": "Object",
+        "required": true
+      },
+      {
+        "childList": [
+          {
+            "componentName": "TextField",
+            "desc": "操作者的 unionId，必填",
+            "label": "操作者unionId",
+            "name": "operatorId",
+            "required": true,
+            "__level": 0,
+            "hidden": false
+          },
+          {
+            "componentName": "NumberField",
+            "desc": "每页最大返回数",
+            "label": "每页最大返回数",
+            "name": "maxResults",
+            "required": false,
+            "__level": 0,
+            "hidden": false
+          },
+          {
+            "componentName": "TextField",
+            "desc": "分页游标",
+            "label": "分页游标",
+            "name": "nextToken",
+            "required": false,
+            "__level": 0,
+            "hidden": false
+          }
+        ],
+        "desc": "查询参数",
+        "name": "Query",
+        "paramType": "Object",
+        "required": false
+      }
+    ],
+    "parameters": {
+      "header": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "path": [
+        {
+          "name": "workspaceId",
+          "type": "string",
+          "required": true,
+          "description": "知识库工作空间 ID (spaceUuid)"
+        }
+      ],
+      "query": [
+        {
+          "name": "operatorId",
+          "type": "string",
+          "required": true,
+          "description": "操作者的 unionId"
+        },
+        {
+          "name": "maxResults",
+          "type": "integer",
+          "required": false,
+          "description": "每页最大返回数"
+        },
+        {
+          "name": "nextToken",
+          "type": "string",
+          "required": false,
+          "description": "分页游标"
+        }
+      ]
+    },
+    "responses": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "description": "节点列表"
+        },
+        "nextToken": {
+          "type": "string",
+          "description": "下一页游标"
+        },
+        "hasMore": {
+          "type": "boolean",
+          "description": "是否有更多"
+        }
+      }
+    },
+    "outputs": [
+      {
+        "defaultValue": "{\"nodes\": [], \"nextToken\": \"\", \"hasMore\": false}",
+        "desc": "响应体结构",
+        "name": "Response",
+        "paramType": "Object",
+        "required": false,
+        "childList": [
+          {
+            "_key": "listWorkspaceNodes%nodes",
+            "name": "nodes",
+            "paramType": "Array",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "节点列表"
+          },
+          {
+            "_key": "listWorkspaceNodes%nextToken",
+            "name": "nextToken",
+            "paramType": "String",
+            "children": [],
+            "childList": [],
+            "__level": 0,
+            "hidden": false,
+            "label": "下一页游标"
+          }
+        ]
+      }
+    ],
+    "origin": true
+  }
+]

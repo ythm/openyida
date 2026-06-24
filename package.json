@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.04.15-1",
+  "version": "2026.04.20",
   "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "./bin/yida.js",
@@ -48,6 +48,7 @@
   "homepage": "https://github.com/openyida/openyida#readme",
   "dependencies": {
     "@babel/standalone": "^7.15.1",
+
     "playwright": "^1.58.2",
     "qrcode": "^1.5.4",
     "uglify-js": "^3.19.3"

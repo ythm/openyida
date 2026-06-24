@@ -177,6 +177,28 @@ openyida copy
 
 ---
 
+## 共享参考文档速查
+
+> 以下文档供所有技能共享使用，开发时可快速查阅。
+
+| 文档 | 路径 | 用途 |
+|--------|------|------|
+| m-开发者手册 | `references/m-developer-guide.md` | 宜搭核心概念、JS-API、设计器功能、组件体系 |
+| m-用户手册 | `references/m-yida-user-guide.md` | 宜搭产品体系、表单设计、流程设计、集成自动化 |
+| m-钉钉平台 | `references/m-dingtalk-platform.md` | 钉钉开放平台概念、API、JSAPI |
+| **API 参考** | `references/yida-api.md` | OpenAPI 接口大全 |
+| **查询条件指南** | `references/query-condition-guide.md` | 条件搜索语法 |
+| **公式函数** | `references/formula-functions.md` | 表单公式大全 |
+| **Model API** | `references/model-api.md` | 数据模型接口 |
+| **报表字段配置** | `references/report-field-config-guide.md` | 报表字段配置 |
+
+> 💡 **提示**：
+> - 自定义页面 → 查阅 `m-developer-guide.md`
+> - 调用 OpenAPI → 查阅 `yida-api.md`
+> - 对接钉钉能力 → 查阅 `m-dingtalk-platform.md`
+
+---
+
 ## 关键规则
 
 ### 1. 执行子技能前必须读取其 SKILL.md

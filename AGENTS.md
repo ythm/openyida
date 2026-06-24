@@ -159,7 +159,7 @@ openyida/
 - **入口文件** `yida-skills/SKILL.md` 是索引表，列出所有子技能和共享参考文档
 - **每个子技能**位于 `yida-skills/skills/<skill-name>/` 目录下，包含独立的 `SKILL.md`
 - **专属参考文档**放在各 skill 的 `references/` 目录下（复数形式），实现自包含
-- **跨 skill 共享文档**保留在 `yida-skills/references/` 目录下（`yida-api.md`、`model-api.md`、`query-condition-guide.md`）
+- **跨 skill 共享文档**保留在 `yida-skills/references/` 目录下（`yida-api.md`、`model-api.md`、`query-condition-guide.md`、`developer-guide.md`）
 - 新增子技能时，同步更新 `yida-skills/SKILL.md` 的索引表
 
 ## 开发注意事项
@@ -172,6 +172,19 @@ openyida/
 6. **终端输出样式**：统一使用 `lib/core/chalk.js` 提供的公共样式模块，不要在各命令文件中单独 `require('chalk')` 并自定义颜色
 7. **国际化**：新增用户可见的文案时，需同步在 `lib/core/locales/` 下所有 12 个语言包中添加对应 key
 8. **私有化部署**：多环境配置通过 `lib/core/env-manager.js` 管理，不要在命令文件中硬编码 API 域名
+
+### 自定义展示页面 formUuid 映射（发布时必须使用正确的 formUuid）
+
+应用 `APP_ROA9FS5K0R6XNDPL52DW`（课程学习系统）：
+
+| 页面文件 | formUuid | 最新 Version |
+|----------|----------|:---:|
+| course-list.js | `FORM-D04DD43D98D24FD180D80523DD0F661562MA` | 156 |
+| course-manage.js | `FORM-E36EB747E1F0413FB7468BE5F4F32C53NN6R` | 153 |
+| course-detail.js | `FORM-3C683C9766F047A69E07FA0E1CCAB97B4JWS` | 130 |
+| question-manage.js | `FORM-D62AC2A7589A4332A98A7A5F7D8C1486K0G1` | 3 |
+| exam-page.js | `FORM-997406BADC8A4E9B913E6AA7B974CC347CNU` | 2 |
+| paper-manage.js | `FORM-9D90538D54BB4F738B7944BF3C6ADABFTZD1` | - |
 
 ## 常见任务示例
 
